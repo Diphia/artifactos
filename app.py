@@ -10,9 +10,7 @@ with open('/etc/artifactos/config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 app.config.update(config)
 
-UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+UPLOAD_FOLDER = '/data'
 
 def require_token(f):
     @wraps(f)
@@ -33,14 +31,14 @@ def upload_file():
         return 'No selected file', 400
     if file:
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
         return f"File uploaded. Access it at: /data/{filename}", 201
 
 @app.route('/data/<filename>', methods=['GET'])
 @require_token
 def get_artifact(filename):
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
     if os.path.exists(file_path):
         return send_file(file_path)
     return 'File not found', 404
