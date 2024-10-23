@@ -21,6 +21,15 @@ def require_token(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def require_token_in_query(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = request.args.get('token')
+        if token != app.config['TOKEN']:
+            abort(401)
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/upload', methods=['POST'])
 @require_token
 def upload_file():
@@ -36,7 +45,7 @@ def upload_file():
         return f"File uploaded. Access it at: /data/{filename}", 201
 
 @app.route('/data/<filename>', methods=['GET'])
-@require_token
+@require_token_in_query
 def get_artifact(filename):
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     if os.path.exists(file_path):
@@ -45,3 +54,4 @@ def get_artifact(filename):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
